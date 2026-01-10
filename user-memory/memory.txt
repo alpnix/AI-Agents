@@ -1,0 +1,3 @@
+likes fruits
+likes bananas
+likes ripe bananas
