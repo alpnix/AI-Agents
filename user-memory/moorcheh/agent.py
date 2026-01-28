@@ -157,6 +157,7 @@ def ingest_urls_streaming(
     chunk_size: int = 1200,
     overlap: int = 150,
     batch_size: int = 16,
+    max_chars_per_doc: int = 120_000,
 ) -> None:
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; ResearchMemoryAgent/1.0; +https://example.com/bot)"
@@ -171,6 +172,8 @@ def ingest_urls_streaming(
             response = requests.get(fallback, headers=headers, timeout=15)
         response.raise_for_status()
         text = clean_text(response.text)
+        if max_chars_per_doc > 0:
+            text = text[:max_chars_per_doc]
         for chunk in chunk_text(text, chunk_size=chunk_size, overlap=overlap):
             buffer.append(chunk)
             if len(buffer) >= batch_size:
@@ -190,6 +193,8 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 150) -> List[str
     while start < len(text):
         end = min(start + chunk_size, len(text))
         chunks.append(text[start:end])
+        if end == len(text):
+            break
         start = end - overlap
         if start < 0:
             start = 0
